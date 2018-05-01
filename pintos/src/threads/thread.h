@@ -90,6 +90,8 @@ struct thread
     int priority;                       /* Priority. */
     struct list_elem allelem;           /* List element for all threads list. */
 
+    int64_t exit_time; 
+
     /* Shared between thread.c and synch.c. */
     struct list_elem elem;              /* List element. */
 
@@ -102,6 +104,16 @@ struct thread
     unsigned magic;                     /* Detects stack overflow. */
   };
 
+/* struct of node to hold threads */
+struct node {
+  struct thread *heldThread;
+  struct node *nextNode;
+};
+
+/* List of waiting threads. */ 
+static struct waiting_threads {
+  struct node *headNode;
+}; 
 /* If false (default), use round-robin scheduler.
    If true, use multi-level feedback queue scheduler.
    Controlled by kernel command-line option "-o mlfqs". */
@@ -122,6 +134,9 @@ void thread_unblock (struct thread *);
 struct thread *thread_current (void);
 tid_t thread_tid (void);
 const char *thread_name (void);
+
+//Puts the thread to sleep with the time to sleep. 
+void thread_sleep(int64_t time_to_sleep);
 
 void thread_exit (void) NO_RETURN;
 void thread_yield (void);
