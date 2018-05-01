@@ -351,7 +351,7 @@ thread_yield (void)
 }
 
 void
-thread_sleep_setter (void)
+thread_sleep_setter (int64_t totalTicks)
 {
   struct thread *cur = thread_current ();
   enum intr_level old_level;
@@ -360,15 +360,17 @@ thread_sleep_setter (void)
 
   old_level = intr_disable ();
   cur->status = THREAD_BLOCKED;
+  cur->exit_time = totalTicks;
   if (cur != idle_thread) {
 
-    struct list_elem *e;
+    /*struct list_elem *e;
     for (e = list_begin (list); e != list_end (list); e = list_next (e))
     if (less (elem, e, NULL))  break;
-    list_insert (e, elem);
-    //struct list_elem *frontOfList = list_head(&list_sleeping);
-    //struct list_elem *currentListElem = frontOfList;
-    /*while(currentListElem != NULL)
+    list_insert (e, elem);*/
+
+    struct list_elem *frontOfList = list_head(&list_sleeping);
+    struct list_elem *currentListElem = frontOfList;
+    while(currentListElem != NULL)
     {
       struct thread *currentThreadCmp = list_entry(currentListElem,
                                                   struct thread, elem);
@@ -378,9 +380,8 @@ thread_sleep_setter (void)
         break;
       }
       currentListElem = currentListElem->next;
-    }*/
+    }
   }
-
   schedule ();
   intr_set_level (old_level);
 }

@@ -95,7 +95,7 @@ timer_sleep (int64_t ticks)
 
   int64_t totalTicks = start + ticks;
   ASSERT (intr_get_level () == INTR_ON);
-  thread_sleep_setter();
+  thread_sleep_setter(totalTicks);
     //thread_yield ();
 }
 

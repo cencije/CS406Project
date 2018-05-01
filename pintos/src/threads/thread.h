@@ -145,4 +145,5 @@ int thread_get_recent_cpu (void);
 int thread_get_load_avg (void);
 
 void check_sleeping_threads(void);
+void thread_sleep_setter(int64_t totalTicks);
 #endif /* threads/thread.h */
