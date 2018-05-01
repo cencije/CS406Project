@@ -125,17 +125,17 @@ thread_tick (void)
   struct thread *t = thread_current ();
 
   /* Update statistics. */
-  if (t == idle_thread)
-    idle_ticks++;
+  if (t == idle_thread) // is current thread idle thread, runs while there are no other threads
+    idle_ticks++; // counts idle time
 #ifdef USERPROG
   else if (t->pagedir != NULL)
-    user_ticks++;
+    user_ticks++;  
 #endif
   else
-    kernel_ticks++;
+    kernel_ticks++;  // else it will count kernal ticks
 
   /* Enforce preemption. */
-  if (++thread_ticks >= TIME_SLICE)
+  if (++thread_ticks >= TIME_SLICE) 
     intr_yield_on_return ();
 }
 
@@ -314,7 +314,7 @@ thread_yield (void)
   
   ASSERT (!intr_context ());
 
-  old_level = intr_disable ();
+  old_level = intr_disable (); // disable interrupts
   if (cur != idle_thread) 
     list_push_back (&ready_list, &cur->elem);
   cur->status = THREAD_READY;
@@ -523,12 +523,12 @@ thread_schedule_tail (struct thread *prev)
   ASSERT (intr_get_level () == INTR_OFF);
 
   /* Mark us as running. */
-  cur->status = THREAD_RUNNING;
+  cur->status = THREAD_RUNNING; // sets status to running
 
   /* Start new time slice. */
-  thread_ticks = 0;
+  thread_ticks = 0; // by setting to zero
 
-#ifdef USERPROG
+#ifdef USERPROG // no user programs, all threads are kernal threads
   /* Activate the new address space. */
   process_activate ();
 #endif
@@ -555,8 +555,8 @@ thread_schedule_tail (struct thread *prev)
 static void
 schedule (void) 
 {
-  struct thread *cur = running_thread ();
-  struct thread *next = next_thread_to_run ();
+  struct thread *cur = running_thread (); // pointer to current thread
+  struct thread *next = next_thread_to_run (); // pointer to next thread to run: target fn for priority threads
   struct thread *prev = NULL;
 
   ASSERT (intr_get_level () == INTR_OFF);
@@ -564,8 +564,8 @@ schedule (void)
   ASSERT (is_thread (next));
 
   if (cur != next)
-    prev = switch_threads (cur, next);
-  thread_schedule_tail (prev);
+    prev = switch_threads (cur, next); // actually does the thread switching
+  thread_schedule_tail (prev); // does follow up stuff
 }
 
 /* Returns a tid to use for a new thread. */

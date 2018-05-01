@@ -92,7 +92,7 @@ timer_sleep (int64_t ticks)
   int64_t start = timer_ticks ();
 
   ASSERT (intr_get_level () == INTR_ON);
-  while (timer_elapsed (start) < ticks) 
+  while (timer_elapsed (start) < ticks) // busy waiting. If its the only thread running, it will be constantly checking (waste time)
     thread_yield ();
 }
 
@@ -167,6 +167,7 @@ timer_print_stats (void)
 }
 
 /* Timer interrupt handler. */
+// check at any given interval, check if any threads need to be awakened
 static void
 timer_interrupt (struct intr_frame *args UNUSED)
 {
