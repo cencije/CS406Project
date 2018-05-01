@@ -31,6 +31,7 @@ static struct list all_list;
 /* Idle thread. */
 static struct thread *idle_thread;
 
+
 /* Initial thread, the thread running init.c:main(). */
 static struct thread *initial_thread;
 
@@ -172,6 +173,7 @@ thread_create (const char *name, int priority,
   struct switch_threads_frame *sf;
   tid_t tid;
   enum intr_level old_level;
+  t->exit_time = 0;
 
   ASSERT (function != NULL);
 
