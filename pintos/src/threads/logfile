@@ -1,31 +1,22 @@
-qemu-system-i386 -hda /tmp/ByzaydV9tt.dsk -m 4 -net none -serial stdio
+qemu-system-i386 -hda /tmp/eCxzJvGdnr.dsk -m 4 -net none -serial stdio
 PiLo hda1
 Loading...........
 Kernel command line: run alarm-multiple
 Pintos booting with 3,968 kB RAM...
 367 pages available in kernel pool.
 367 pages available in user pool.
-Unexpected interrupt 0x0e (#PF Page-Fault Exception)
-Unexpected interrupt 0x0e (#PF Page-Fault Exception)
-Unexpected interrupt 0x0e (#PF Page-Fault Exception)
-Unexpected interrupt 0x0e (#PF Page-Fault Exception)
-Unexpected interrupt 0x0e (#PF Page-Fault Exception)
-Unexpected interrupt 0x0e (#PF Page-Fault Exception)
-Unexpected interrupt 0x0e (#PF Page-Fault Exception)
-Unexpected interrupt 0x0e (#PF Page-Fault Exception)
-Unexpected interrupt 0x0e (#PF Page-Fault Exception)
-Unexpected interrupt 0x0e (#PF Page-Fault Exception)
-Unexpected interrupt 0x0e (#PF Page-Fault Exception)
-Unexpected interrupt 0x0e (#PF Page-Fault Exception)
-Unexpected interrupt 0x0e (#PF Page-Fault Exception)
-Unexpected interrupt 0x0e (#PF Page-Fault Exception)
-Unexpected interrupt 0x0e (#PF Page-Fault Exception)
-Unexpected interrupt 0x0e (#PF Page-Fault Exception)
-Unexpected interrupt 0x0e (#PF Page-Fault Exception)
-Unexpected interrupt 0x0e (#PF Page-Fault Exception)
-Unexpected interrupt 0x0e (#PF Page-Fault Exception)
-Unexpected interrupt 0x0e (#PF Page-Fault Exception)
-Unexpected interrupt 0x0e (#PF Page-Fault Exception)
-Unexpected interrupt 0x0e (#PF Page-Fault Exception)
-Unexpected interrupt 0x0e (#PF Page-Fault Exception)
-Unexpected interrupt 0x0e (#PF Page-Fault Exception)
+Thread Tick # 1Calibrating timer...  Thread Tick # 2Thread Tick # 3Thread Tick # 4Thread Tick # 5Thread Tick # 6Thread Tick # 7Thread Tick # 8Thread Tick # 9Thread Tick # 10Thread Tick # 11Thread Tick # 12Thread Tick # 13Thread Tick # 14Thread Tick # 15Thread Tick # 16Thread Tick # 17Thread Tick # 18Thread Tick # 19Thread Tick # 20Thread Tick # 21Thread Tick # 22Thread Tick # 23Thread Tick # 24Thread Tick # 25Thread Tick # 26Thread Tick # 27Thread Tick # 28Thread Tick # 29Thread Tick # 30Thread Tick # 31Thread Tick # 32Thread Tick # 33Thread Tick # 34Thread Tick # 35Thread Tick # 36Thread Tick # 37Thread Tick # 38Thread Tick # 39Thread Tick # 40Thread Tick # 41Thread Tick # 42Thread Tick # 43Thread Tick # 44Thread Tick # 45Thread Tick # 46Thread Tick # 47Thread Tick # 48Thread Tick # 49Thread Tick # 50Thread Tick # 51Thread Tick # 52Thread Tick # 53Thread Tick # 54Thread Tick # 55432,537,600 loops/s.
+Boot complete.
+Executing 'alarm-multiple':
+(alarm-multiple) begin
+(alarm-multiple) Creating 5 threads to sleep 7 times each.
+(alarm-multiple) Thread 0 sleeps 10 ticks each time,
+(alarm-multiple) thread 1 sleeps 20 ticks each time, and so on.
+(alarm-multiple) If successful, product of iteratioThread Tick # 56n count and
+(alarm-multiple) sleep duration will appear in nondescending order.
+Called Sleep Setter
+Kernel PANIC at ../../threads/thread.c:303 in thread_current(): assertion `t->status == THREAD_RUNNING' failed.
+Call stack: 0xc002776b.
+The `backtrace' program can make call stacks useful.
+Read "Backtraces" in the "Debugging Tools" chapter
+of the Pintos documentation for more information.

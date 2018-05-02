@@ -71,7 +71,7 @@ static void *alloc_frame (struct thread *, size_t size);
 static void schedule (void);
 void thread_schedule_tail (struct thread *prev);
 static tid_t allocate_tid (void);
-
+int counts = 0;
 /* ADDED GLOBALS */
 static struct list list_sleeping;
 
@@ -146,6 +146,8 @@ thread_start (void)
 void
 thread_tick (void)
 {
+  counts++;
+  printf("%s%d", "Thread Tick # ", counts);
   struct thread *t = thread_current ();
 
   /* Update statistics. */
@@ -198,7 +200,7 @@ thread_create (const char *name, int priority,
   struct switch_threads_frame *sf;
   tid_t tid;
   enum intr_level old_level;
-  t->exit_time = 0;
+  //t->exit_time = 0;
 
   ASSERT (function != NULL);
 
@@ -352,6 +354,8 @@ thread_yield (void)
 void
 thread_sleep_setter (int64_t totalTicks)
 {
+
+  printf("Called Sleep Setter\n");
   struct thread *cur = thread_current ();
   enum intr_level old_level;
 
@@ -368,19 +372,27 @@ thread_sleep_setter (int64_t totalTicks)
     list_insert (e, elem);*/
 
     struct list_elem *frontOfList = list_head(&list_sleeping);
-    struct list_elem *currentListElem = frontOfList;
+    struct list_elem *currentListElem = &frontOfList;
+    printf("Hello!");
+    bool inserted = false;
     while(currentListElem != NULL)
     {
       struct thread *currentThreadCmp = list_entry(currentListElem,
                                                   struct thread, elem);
       if (cur->exit_time <= currentThreadCmp->exit_time)
       {
-        list_insert(currentThreadCmp, cur);
+        printf("\nFound Spot to place in List!\n");
+        list_insert(&currentThreadCmp->elem, &cur->elem);
+        inserted = true;
         break;
       }
       currentListElem = currentListElem->next;
     }
+    if (!inserted){
+      list_push_back(&list_sleeping, &cur->elem);
+    }
   }
+
   schedule ();
   intr_set_level (old_level);
 }
