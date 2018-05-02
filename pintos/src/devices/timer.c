@@ -96,6 +96,7 @@ timer_sleep (int64_t ticks)
   int64_t totalTicks = start + ticks;
   ASSERT (intr_get_level () == INTR_ON);
 
+
   thread_sleep_setter(totalTicks);
   /*while (timer_elapsed (start) < ticks)
    thread_yield ();*/
@@ -175,6 +176,7 @@ timer_print_stats (void)
 }
 
 /* Timer interrupt handler. */
+// check at any given interval, check if any threads need to be awakened
 static void
 timer_interrupt (struct intr_frame *args UNUSED)
 {

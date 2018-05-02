@@ -151,16 +151,17 @@ thread_tick (void)
   struct thread *t = thread_current ();
 
   /* Update statistics. */
-  if (t == idle_thread)
-    idle_ticks++;
+  if (t == idle_thread) // is current thread idle thread, runs while there are no other threads
+    idle_ticks++; // counts idle time
 #ifdef USERPROG
   else if (t->pagedir != NULL)
-    user_ticks++;
+    user_ticks++;  
 #endif
   else
-    kernel_ticks++;
+    kernel_ticks++;  // else it will count kernal ticks
 
   /* Enforce preemption. */
+
   if (++thread_ticks >= TIME_SLICE) {intr_yield_on_return ();}
 
   check_sleeping_threads();
@@ -276,6 +277,10 @@ thread_unblock (struct thread *t)
   ASSERT (t->status == THREAD_BLOCKED);
   list_push_back (&ready_list, &t->elem);
   t->status = THREAD_READY;
+
+  // call compare here
+  thread_compare_priority(t);
+
   intr_set_level (old_level);
 }
 
@@ -417,7 +422,21 @@ thread_foreach (thread_action_func *func, void *aux)
 void
 thread_set_priority (int new_priority)
 {
-  thread_current ()->priority = new_priority;
+
+  thread_current ()->priority = new_priority; 
+  /*
+  // iterate through ready_list, check that it is still highest
+  struct list_elem *e;
+  struct thread *t = list_begin (&ready_list);
+
+  for (e = list_begin (&ready_list); e != list_end (&ready_list); e = list_next (e)) {
+    if(e.priority > thread_current.priority){
+      //switch_threads(*t, *e);
+      t = e;
+    }
+  }
+  t = thread_current;
+  */
 }
 
 /* Returns the current thread's priority. */
@@ -426,6 +445,20 @@ thread_get_priority (void)
 {
   return thread_current ()->priority;
 }
+
+bool thread_compare_priority(struct thread *t){
+  ASSERT (is_thread (t));
+  struct thread *cur = running_thread ();
+
+  if (t->priority > running_thread()->priority){
+    switch_threads(t, cur);
+    //thread_yield();
+    // schedule new priority
+    return true;
+  }
+  return false;
+}
+
 
 /* Sets the current thread's nice value to NICE. */
 void
@@ -597,12 +630,12 @@ thread_schedule_tail (struct thread *prev)
   ASSERT (intr_get_level () == INTR_OFF);
 
   /* Mark us as running. */
-  cur->status = THREAD_RUNNING;
+  cur->status = THREAD_RUNNING; // sets status to running
 
   /* Start new time slice. */
-  thread_ticks = 0;
+  thread_ticks = 0; // by setting to zero
 
-#ifdef USERPROG
+#ifdef USERPROG // no user programs, all threads are kernal threads
   /* Activate the new address space. */
   process_activate ();
 #endif
@@ -629,8 +662,8 @@ thread_schedule_tail (struct thread *prev)
 static void
 schedule (void)
 {
-  struct thread *cur = running_thread ();
-  struct thread *next = next_thread_to_run ();
+  struct thread *cur = running_thread (); // pointer to current thread
+  struct thread *next = next_thread_to_run (); // pointer to next thread to run: target fn for priority threads
   struct thread *prev = NULL;
 
   ASSERT (intr_get_level () == INTR_OFF);
@@ -638,8 +671,8 @@ schedule (void)
   ASSERT (is_thread (next));
 
   if (cur != next)
-    prev = switch_threads (cur, next);
-  thread_schedule_tail (prev);
+    prev = switch_threads (cur, next); // actually does the thread switching
+  thread_schedule_tail (prev); // does follow up stuff
 }
 
 /* Returns a tid to use for a new thread. */
