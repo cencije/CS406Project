@@ -90,6 +90,9 @@ struct thread
     int priority;                       /* Priority. */
     struct list_elem allelem;           /* List element for all threads list. */
 
+/* Added Exit_time for tick amount when sleeping */
+    int64_t exit_time;
+
     /* Shared between thread.c and synch.c. */
     struct list_elem elem;              /* List element. */
 
@@ -125,6 +128,7 @@ struct thread *thread_current (void);
 tid_t thread_tid (void);
 const char *thread_name (void);
 
+
 void thread_exit (void) NO_RETURN;
 void thread_yield (void);
 
@@ -140,4 +144,6 @@ void thread_set_nice (int);
 int thread_get_recent_cpu (void);
 int thread_get_load_avg (void);
 
+void check_sleeping_threads(void);
+void thread_sleep_setter(int64_t totalTicks);
 #endif /* threads/thread.h */
