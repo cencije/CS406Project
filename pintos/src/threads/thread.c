@@ -247,6 +247,10 @@ thread_unblock (struct thread *t)
   ASSERT (t->status == THREAD_BLOCKED);
   list_push_back (&ready_list, &t->elem);
   t->status = THREAD_READY;
+
+  // call compare here
+  thread_compare_priority(t);
+
   intr_set_level (old_level);
 }
 
@@ -343,7 +347,21 @@ thread_foreach (thread_action_func *func, void *aux)
 void
 thread_set_priority (int new_priority) 
 {
-  thread_current ()->priority = new_priority;
+
+  thread_current ()->priority = new_priority; 
+  /*
+  // iterate through ready_list, check that it is still highest
+  struct list_elem *e;
+  struct thread *t = list_begin (&ready_list);
+
+  for (e = list_begin (&ready_list); e != list_end (&ready_list); e = list_next (e)) {
+    if(e.priority > thread_current.priority){
+      //switch_threads(*t, *e);
+      t = e;
+    }
+  }
+  t = thread_current;
+  */
 }
 
 /* Returns the current thread's priority. */
@@ -352,6 +370,20 @@ thread_get_priority (void)
 {
   return thread_current ()->priority;
 }
+
+bool thread_compare_priority(struct thread *t){
+  ASSERT (is_thread (t));
+  struct thread *cur = running_thread ();
+
+  if (t->priority > running_thread()->priority){
+    switch_threads(t, cur);
+    //thread_yield();
+    // schedule new priority
+    return true;
+  }
+  return false;
+}
+
 
 /* Sets the current thread's nice value to NICE. */
 void
