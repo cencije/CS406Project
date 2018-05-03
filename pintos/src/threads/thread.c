@@ -112,17 +112,20 @@ void check_sleeping_threads (void) {
   {
     if (list_empty(&list_sleeping))
     {
+      //printf("\nReturned Empty\n");
       return;
     }
-    struct list_elem *frontOfList = list_head(&list_sleeping);
+    struct list_elem *frontOfList = list_begin(&list_sleeping);
     struct thread *heldThread = list_entry(frontOfList, struct thread, elem);
 
     if(heldThread->exit_time > currentTicks) {
       return;
     }
+    //printf("\nPOPPING\n");
     list_pop_front(&list_sleeping);
     thread_unblock(heldThread);
   }
+
 }
 /* Starts preemptive thread scheduling by enabling interrupts.
    Also creates the idle thread. */
@@ -147,24 +150,28 @@ void
 thread_tick (void)
 {
   counts++;
-  printf("%s%d", "Thread Tick # ", counts);
+  //printf("%s%d", "Thread Tick # ", counts);
+
   struct thread *t = thread_current ();
 
+
   /* Update statistics. */
-  if (t == idle_thread) // is current thread idle thread, runs while there are no other threads
-    idle_ticks++; // counts idle time
+  if (t == idle_thread)  //is current thread idle thread, runs while there are no other threads
+    idle_ticks++;  //counts idle time
 #ifdef USERPROG
   else if (t->pagedir != NULL)
-    user_ticks++;  
+    user_ticks++;
 #endif
   else
-    kernel_ticks++;  // else it will count kernal ticks
+    kernel_ticks++;   //else it will count kernal ticks
 
+ check_sleeping_threads();
   /* Enforce preemption. */
 
-  if (++thread_ticks >= TIME_SLICE) {intr_yield_on_return ();}
+  if (++thread_ticks >= TIME_SLICE)
+    intr_yield_on_return ();
 
-  check_sleeping_threads();
+
 
 }
 
@@ -201,19 +208,20 @@ thread_create (const char *name, int priority,
   struct switch_threads_frame *sf;
   tid_t tid;
   enum intr_level old_level;
-  //t->exit_time = 0;
+
 
   ASSERT (function != NULL);
 
   /* Allocate thread. */
   t = palloc_get_page (PAL_ZERO);
+
   if (t == NULL)
     return TID_ERROR;
 
   /* Initialize thread. */
   init_thread (t, name, priority);
   tid = t->tid = allocate_tid ();
-
+  t->exit_time = 0;
   /* Prepare thread for first run by initializing its stack.
      Do this atomically so intermediate values for the 'stack'
      member cannot be observed. */
@@ -279,7 +287,7 @@ thread_unblock (struct thread *t)
   t->status = THREAD_READY;
 
   // call compare here
-  thread_compare_priority(t);
+  //thread_compare_priority(t);
 
   intr_set_level (old_level);
 }
@@ -360,42 +368,57 @@ void
 thread_sleep_setter (int64_t totalTicks)
 {
 
-  printf("Called Sleep Setter\n");
+  //printf("Called Sleep Setter\n");
+
   struct thread *cur = thread_current ();
   enum intr_level old_level;
 
   ASSERT (!intr_context ());
 
   old_level = intr_disable ();
-  cur->status = THREAD_BLOCKED;
+  //cur->status = THREAD_BLOCKED;
   cur->exit_time = totalTicks;
-  if (cur != idle_thread) {
+  if (cur != idle_thread)
+  {
 
-    /*struct list_elem *e;
-    for (e = list_begin (list); e != list_end (list); e = list_next (e))
-    if (less (elem, e, NULL))  break;
-    list_insert (e, elem);*/
+    struct list_elem *frontOfList = list_begin(&list_sleeping);
+    struct list_elem *currentListElem = frontOfList;
 
-    struct list_elem *frontOfList = list_head(&list_sleeping);
-    struct list_elem *currentListElem = &frontOfList;
-    printf("Hello!");
     bool inserted = false;
-    while(currentListElem != NULL)
+    /*if(list_empty(&list_sleeping))
     {
-      struct thread *currentThreadCmp = list_entry(currentListElem,
-                                                  struct thread, elem);
-      if (cur->exit_time <= currentThreadCmp->exit_time)
+      list_push_front(&list_sleeping,&cur->elem);
+    }
+    else
+    {*/
+      //int counter = 0;
+      while(currentListElem != NULL)
       {
-        printf("\nFound Spot to place in List!\n");
-        list_insert(&currentThreadCmp->elem, &cur->elem);
-        inserted = true;
-        break;
+        //printf("\nINSIDE WHILE!\n");
+        struct thread *currentThreadCmp = list_entry(currentListElem,
+                                                    struct thread, elem);
+        if (cur->exit_time <= currentThreadCmp->exit_time)
+        {
+          //printf("\nFound Spot to place in List!\n");
+          //printf("%d%s", counter, "\n");
+          //list_push_front(&list_sleeping,&cur->elem);
+          list_insert(&currentThreadCmp->elem, &cur->elem);
+          //printf("%s%d\n", "Size of the sleeping list: ", list_size(&list_sleeping));
+          cur->status = THREAD_BLOCKED;
+          inserted = true;
+          break;
+        }
+        currentListElem = currentListElem->next;
+        //counter++;
       }
-      currentListElem = currentListElem->next;
-    }
-    if (!inserted){
-      list_push_back(&list_sleeping, &cur->elem);
-    }
+      if (!inserted){
+        //printf("\nInserted was false and put at the end\n");
+        list_push_back(&list_sleeping, &cur->elem);
+        //printf("%s%d\n", "Size of the sleeping list: ", list_size(&list_sleeping));
+        cur->status = THREAD_BLOCKED;
+      }
+    //}
+
   }
 
   schedule ();
@@ -423,7 +446,7 @@ void
 thread_set_priority (int new_priority)
 {
 
-  thread_current ()->priority = new_priority; 
+  thread_current ()->priority = new_priority;
   /*
   // iterate through ready_list, check that it is still highest
   struct list_elem *e;
