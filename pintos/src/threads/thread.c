@@ -239,6 +239,12 @@ thread_create (const char *name, int priority,
   /* Add to run queue. */
   thread_unblock (t);
 
+  // compare new thread to running thread. If priority >, yield current thread, 
+  // and schedule new one (sort and pop from top, whcih should be this thread).
+  if (thread_compare_to_running(&t) == true){
+  	thread_switch();
+  }
+
   return tid;
 }
 
@@ -278,9 +284,6 @@ thread_unblock (struct thread *t)
   list_push_back (&ready_list, &t->elem);
   t->status = THREAD_READY;
 
-  // call compare here
-  thread_compare_priority(t);
-
   intr_set_level (old_level);
 }
 
@@ -309,6 +312,8 @@ thread_current (void)
 
   return t;
 }
+
+
 
 /* Returns the running thread's tid. */
 tid_t
@@ -446,7 +451,7 @@ thread_get_priority (void)
   return thread_current ()->priority;
 }
 
-bool thread_compare_priority(struct thread *t){
+bool thread_compare_to_running(struct thread *t){
   ASSERT (is_thread (t));
   struct thread *cur = running_thread ();
 
@@ -457,6 +462,22 @@ bool thread_compare_priority(struct thread *t){
     return true;
   }
   return false;
+}
+
+struct thread * thread_compare_two(struct thread *t, struct thread *s){
+	ASSERT (is_thread (t));
+	ASSERT (is_thread (s));
+
+	if (t->priority == s->priority){
+		return t;
+	}
+	else if (t->priority > s->priority)
+	{
+		return t;
+	}
+	else{
+		return s;
+	}
 }
 
 
@@ -603,6 +624,8 @@ next_thread_to_run (void)
   if (list_empty (&ready_list))
     return idle_thread;
   else
+  	// sort list here before selecting the thread from the front
+  	// needs input for comapre function? list_sort(&ready_list, thread_compare_two());
     return list_entry (list_pop_front (&ready_list), struct thread, elem);
 }
 
@@ -673,6 +696,8 @@ schedule (void)
   if (cur != next)
     prev = switch_threads (cur, next); // actually does the thread switching
   thread_schedule_tail (prev); // does follow up stuff
+
+
 }
 
 /* Returns a tid to use for a new thread. */
