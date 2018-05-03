@@ -35,6 +35,7 @@ static void real_time_delay (int64_t num, int32_t denom);
 void
 timer_init (void)
 {
+  printf("Timer Initialized\n");
   pit_configure_channel (0, 2, TIMER_FREQ);
   intr_register_ext (0x20, timer_interrupt, "8254 Timer");
 }
@@ -67,6 +68,8 @@ timer_calibrate (void)
 }
 
 /* Returns the number of timer ticks since the OS booted. */
+
+
 int64_t
 timer_ticks (void)
 {
@@ -78,6 +81,7 @@ timer_ticks (void)
 
 /* Returns the number of timer ticks elapsed since THEN, which
    should be a value once returned by timer_ticks(). */
+
 int64_t
 timer_elapsed (int64_t then)
 {
@@ -96,7 +100,7 @@ timer_sleep (int64_t ticks)
   int64_t totalTicks = start + ticks;
   ASSERT (intr_get_level () == INTR_ON);
 
-
+  //printf("\nThread Sleep Setter being called!\n");
   thread_sleep_setter(totalTicks);
   /*while (timer_elapsed (start) < ticks)
    thread_yield ();*/
