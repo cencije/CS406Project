@@ -249,9 +249,11 @@ thread_create (const char *name, int priority,
 
   // compare new thread to running thread. If priority >, yield current thread, 
   // and schedule new one (sort and pop from top, whcih should be this thread).
+  /*
   if (thread_compare_to_running(&t) == true){
   	thread_switch();
   }
+  */
 
   return tid;
 }
