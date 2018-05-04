@@ -291,7 +291,10 @@ thread_unblock (struct thread *t)
 
   old_level = intr_disable ();
   ASSERT (t->status == THREAD_BLOCKED);
-  list_push_back (&ready_list, &t->elem);
+  // list_push_back (&ready_list, &t->elem);
+  
+  // add new items as sorted in ready list, maybe we move this to thread_create() or thread_strat()?
+  list_insert_ordered(&ready_list, &t->elem, &thread_compare_two, NULL);
   t->status = THREAD_READY;
 
   // call compare here
@@ -451,30 +454,45 @@ thread_foreach (thread_action_func *func, void *aux)
 }
 
 /* Sets the current thread's priority to NEW_PRIORITY. */
+// Sets the current thread's priority to new_priority. If the current thread no longer has the highest priority, yields
 void
 thread_set_priority (int new_priority)
 {
+	thread_current ()->priority = new_priority;
 
-  thread_current ()->priority = new_priority;
-  /*
-  // iterate through ready_list, check that it is still highest
-  struct list_elem *e;
-  struct thread *t = list_begin (&ready_list);
+  // e is the current thread
+	struct thread *e = thread_current();
 
-  for (e = list_begin (&ready_list); e != list_end (&ready_list); e = list_next (e)) {
-    if(e.priority > thread_current.priority){
-      //switch_threads(*t, *e);
-      t = e;
-    }
-  }
-  t = thread_current;
-  */
+  // t is the  thread at the beginning of the list
+	struct list_elem *frontOfList = list_begin(&ready_list);
+	struct list_elem *currentListElem = frontOfList;
+
+	bool inserted = false;
+	while (currentListElem->next != NULL){
+
+		struct thread *currentThreadCmp = list_entry(currentListElem, struct thread, elem);
+		if (currentThreadCmp->priority < e->priority){
+			thread_yield();
+
+			list_insert(&currentThreadCmp->elem, &e->elem);
+			inserted = true;
+  			
+			break;
+		}
+		currentListElem = currentListElem->next;
+	}
+	if (!inserted){
+		list_push_back(&ready_list, &e->elem);
+	}
 }
 
-/* Returns the current thread's priority. */
+/* Returns the current thread's priority. 
+   Dont think we have to change this, seems to work
+*/
 int
 thread_get_priority (void)
 {
+  // has to return higher/donated priority
   return thread_current ()->priority;
 }
 
@@ -491,7 +509,14 @@ bool thread_compare_to_running(struct thread *t){
   return false;
 }
 
-struct thread * thread_compare_two(struct thread *t, struct thread *s){
+// double check this, true if x, false if y
+bool thread_compare_two(struct list_elem *t, struct list_elem *s, void *aux UNUSED){
+	struct thread *x = list_entry (s, struct thread, elem);
+	struct thread *y = list_entry (t, struct thread, elem);
+
+	return x->priority > y->priority;
+
+	/*
 	ASSERT (is_thread (t));
 	ASSERT (is_thread (s));
 
@@ -505,6 +530,7 @@ struct thread * thread_compare_two(struct thread *t, struct thread *s){
 	else{
 		return s;
 	}
+	*/
 }
 
 

@@ -123,7 +123,7 @@ void thread_unblock (struct thread *);
 
 // my threads for comparison
 bool thread_compare_to_running( struct thread *);
-struct thread * thread_compare_two( struct thread *, struct thread *);
+bool thread_compare_two( struct list_elem *t, struct list_elem *s, void *aux UNUSED);
 
 struct thread *thread_current (void);
 tid_t thread_tid (void);
