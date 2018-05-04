@@ -513,7 +513,7 @@ bool thread_compare_to_running(struct thread *t){
 }
 
 // double check this, true if x, false if y
-bool thread_compare_two(struct list_elem *t, struct list_elem *s, void *aux UNUSED){
+bool thread_compare_two(struct thread *t, struct thread *s){
 
 	ASSERT (is_thread (t));
 	ASSERT (is_thread (s));
