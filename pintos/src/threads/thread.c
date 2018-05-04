@@ -293,10 +293,11 @@ thread_unblock (struct thread *t)
 
   old_level = intr_disable ();
   ASSERT (t->status == THREAD_BLOCKED);
-  // list_push_back (&ready_list, &t->elem);
-  
-  // add new items as sorted in ready list, maybe we move this to thread_create() or thread_strat()?
-  list_insert_ordered(&ready_list, &t->elem, &thread_compare_two, NULL);
+
+  /* EDIT EDIT EDIT EDIT EDIT */
+  list_push_back (&ready_list, &t->elem);
+  //list_insert_ordered(&ready_list, &t->elem, &thread_compare_two, NULL);
+
   t->status = THREAD_READY;
 
   // call compare here
@@ -511,6 +512,7 @@ bool thread_compare_to_running(struct thread *t){
   return false;
 }
 
+<<<<<<< HEAD
 // double check this, true if x, false if y
 bool thread_compare_two(struct list_elem *t, struct list_elem *s, void *aux UNUSED){
 	struct thread *x = list_entry (s, struct thread, elem);
@@ -519,18 +521,18 @@ bool thread_compare_two(struct list_elem *t, struct list_elem *s, void *aux UNUS
 	return x->priority > y->priority;
 
 	/*
+=======
+bool thread_compare_two(struct thread *t, struct thread *s){
+>>>>>>> ce73538dc2a399e297812b757e013168ec76dafe
 	ASSERT (is_thread (t));
 	ASSERT (is_thread (s));
 
-	if (t->priority == s->priority){
-		return t;
-	}
-	else if (t->priority > s->priority)
+	if (t->priority > s->priority)
 	{
-		return t;
+		return true;
 	}
-	else{
-		return s;
+	else {
+		return false;
 	}
 	*/
 }
