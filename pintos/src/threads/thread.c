@@ -302,7 +302,10 @@ thread_unblock (struct thread *t)
 
   old_level = intr_disable ();
   ASSERT (t->status == THREAD_BLOCKED);
+
+  /* EDIT EDIT EDIT EDIT EDIT */
   list_push_back (&ready_list, &t->elem);
+  //list_insert_ordered(&ready_list, &t->elem, &thread_compare_two, NULL);
   t->status = THREAD_READY;
 
   // call compare here
@@ -516,30 +519,30 @@ void calculate_thread_priority(struct thread* thread)
   }
 }
 
-bool check_priority_current_running()
-{
-    struct thread *currentThread = thread_current();
-    struct list_elem *frontOfList = list_begin(&list_sleeping);
-    return(thread_compare_two(frontOfList, &currentThread->elem, NULL));
-}
 
-struct thread * thread_compare_two(struct thread *t, struct thread *s){
+
+bool thread_compare_two(struct thread *t, struct thread *s){
 	ASSERT (is_thread (t));
 	ASSERT (is_thread (s));
 
-	if (t->priority == s->priority){
-		return t;
-	}
-	else if (t->priority > s->priority)
+	if (t->priority > s->priority)
 	{
-		return t;
+		return true;
 	}
-	else{
-		return s;
+	else {
+		return false;
 	}
 }
 
-
+bool check_priority_current_running(void)
+{
+    struct thread *currentThread = thread_current();
+    struct list_elem *frontOfList = list_begin(&list_sleeping);
+    struct list_elem *currentListElem = frontOfList;
+    struct thread *currentThreadCmp = list_entry(currentListElem,
+                                                    struct thread, elem);
+    return(thread_compare_two(currentThreadCmp, currentThread));
+}
 /* Sets the current thread's nice value to NICE. */
 void
 thread_set_nice (int nice)
