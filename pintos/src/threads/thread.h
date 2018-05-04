@@ -129,6 +129,10 @@ void thread_unblock (struct thread *);
 bool thread_compare_to_running( struct thread *);
 struct thread * thread_compare_two( struct thread *, struct thread *);
 
+bool check_priority_current_running();
+
+void calculate_thread_priority(struct thread* thread);
+
 struct thread *thread_current (void);
 tid_t thread_tid (void);
 const char *thread_name (void);

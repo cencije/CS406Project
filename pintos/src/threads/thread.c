@@ -257,6 +257,15 @@ thread_create (const char *name, int priority,
   }
   */
 
+  if(thread_mlfqs)
+  {
+    //calculate thread_priority
+  }
+  if(check_priority_current_running())
+  {
+    thread_yield();
+  }
+
   return tid;
 }
 
@@ -491,6 +500,27 @@ bool thread_compare_to_running(struct thread *t){
     return true;
   }
   return false;
+}
+
+void calculate_thread_priority(struct thread* thread)
+{
+  ASSERT(is_thread(thread));
+
+  if(thread != idle_thread)
+  {
+    thread->priority = 63 - ((thread->recent_cpu / 4) - 2*thread->nice);
+
+    if(thread->priority < 0) thread->priority = 0;
+
+    if(thread->priority > 63) thread->priority = 63;
+  }
+}
+
+bool check_priority_current_running()
+{
+    struct thread *currentThread = thread_current();
+    struct list_elem *frontOfList = list_begin(&list_sleeping);
+    return(thread_compare_two(frontOfList, &currentThread->elem, NULL));
 }
 
 struct thread * thread_compare_two(struct thread *t, struct thread *s){
