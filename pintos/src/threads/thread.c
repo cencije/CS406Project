@@ -71,9 +71,11 @@ static void *alloc_frame (struct thread *, size_t size);
 static void schedule (void);
 void thread_schedule_tail (struct thread *prev);
 static tid_t allocate_tid (void);
-int counts = 0;
+
 /* ADDED GLOBALS */
-static struct list list_sleeping;
+int counts = 0; // For printing
+static struct list list_sleeping; // Sleeping list
+int load_avg; // Calculated
 
 /* Initializes the threading system by transforming the code
    that's currently running into a thread.  This can't work in
@@ -247,7 +249,7 @@ thread_create (const char *name, int priority,
   /* Add to run queue. */
   thread_unblock (t);
 
-  // compare new thread to running thread. If priority >, yield current thread, 
+  // compare new thread to running thread. If priority >, yield current thread,
   // and schedule new one (sort and pop from top, whcih should be this thread).
   /*
   if (thread_compare_to_running(&t) == true){
@@ -510,9 +512,11 @@ struct thread * thread_compare_two(struct thread *t, struct thread *s){
 
 /* Sets the current thread's nice value to NICE. */
 void
-thread_set_nice (int nice UNUSED)
+thread_set_nice (int nice)
 {
-  /* Not yet implemented. */
+  struct thread *t = thread_current();
+  ASSERT(nice >= -20 && nice <= 20)
+  t->nice = nice;
 }
 
 /* Returns the current thread's nice value. */
@@ -520,7 +524,7 @@ int
 thread_get_nice (void)
 {
   /* Not yet implemented. */
-  return 0;
+  return thread_current()->nice;
 }
 
 /* Returns 100 times the system load average. */
@@ -528,15 +532,17 @@ int
 thread_get_load_avg (void)
 {
   /* Not yet implemented. */
-  return 0;
+  return (((59/60) * load_avg) +
+          ((1/60) + list_size(&ready_list)));
 }
 
 /* Returns 100 times the current thread's recent_cpu value. */
 int
 thread_get_recent_cpu (void)
 {
-  /* Not yet implemented. */
-  return 0;
+
+  return ((((2 * thread_get_load_avg())/(2* thread_get_load_avg()))
+              * thread_get_recent_cpu()) + thread_get_nice());
 }
 
 /* Idle thread.  Executes when no other thread is ready to run.
