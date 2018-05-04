@@ -512,18 +512,9 @@ bool thread_compare_to_running(struct thread *t){
   return false;
 }
 
-<<<<<<< HEAD
 // double check this, true if x, false if y
 bool thread_compare_two(struct list_elem *t, struct list_elem *s, void *aux UNUSED){
-	struct thread *x = list_entry (s, struct thread, elem);
-	struct thread *y = list_entry (t, struct thread, elem);
 
-	return x->priority > y->priority;
-
-	/*
-=======
-bool thread_compare_two(struct thread *t, struct thread *s){
->>>>>>> ce73538dc2a399e297812b757e013168ec76dafe
 	ASSERT (is_thread (t));
 	ASSERT (is_thread (s));
 
@@ -534,7 +525,6 @@ bool thread_compare_two(struct thread *t, struct thread *s){
 	else {
 		return false;
 	}
-	*/
 }
 
 
