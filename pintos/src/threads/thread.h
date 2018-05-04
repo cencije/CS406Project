@@ -103,7 +103,7 @@ struct thread
 /* Added these values for calculation */
     int nice;
     int recent_cpu;
-    
+
     /* Owned by thread.c. */
     unsigned magic;                     /* Detects stack overflow. */
   };
@@ -126,8 +126,8 @@ void thread_block (void);
 void thread_unblock (struct thread *);
 
 // my threads for comparison
-bool thread_compare_to_running( struct thread *);
-struct thread * thread_compare_two( struct thread *, struct thread *);
+bool thread_compare_to_running(struct thread *);
+bool thread_compare_two(struct thread *, struct thread *);
 
 struct thread *thread_current (void);
 tid_t thread_tid (void);

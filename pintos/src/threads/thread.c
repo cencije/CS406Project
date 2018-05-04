@@ -293,7 +293,10 @@ thread_unblock (struct thread *t)
 
   old_level = intr_disable ();
   ASSERT (t->status == THREAD_BLOCKED);
+
+  /* EDIT EDIT EDIT EDIT EDIT */
   list_push_back (&ready_list, &t->elem);
+  //list_insert_ordered(&ready_list, &t->elem, &thread_compare_two, NULL);
   t->status = THREAD_READY;
 
   // call compare here
@@ -493,19 +496,16 @@ bool thread_compare_to_running(struct thread *t){
   return false;
 }
 
-struct thread * thread_compare_two(struct thread *t, struct thread *s){
+bool thread_compare_two(struct thread *t, struct thread *s){
 	ASSERT (is_thread (t));
 	ASSERT (is_thread (s));
 
-	if (t->priority == s->priority){
-		return t;
-	}
-	else if (t->priority > s->priority)
+	if (t->priority > s->priority)
 	{
-		return t;
+		return true;
 	}
-	else{
-		return s;
+	else {
+		return false;
 	}
 }
 
