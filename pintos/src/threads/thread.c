@@ -257,6 +257,15 @@ thread_create (const char *name, int priority,
   }
   */
 
+  if(thread_mlfqs)
+  {
+    //calculate thread_priority
+  }
+  if(check_priority_current_running())
+  {
+    thread_yield();
+  }
+
   return tid;
 }
 
@@ -512,7 +521,26 @@ bool thread_compare_to_running(struct thread *t){
   return false;
 }
 
+<<<<<<< HEAD
 // double check this, true if x, false if y
+=======
+void calculate_thread_priority(struct thread* thread)
+{
+  ASSERT(is_thread(thread));
+
+  if(thread != idle_thread)
+  {
+    thread->priority = 63 - ((thread->recent_cpu / 4) - 2*thread->nice);
+
+    if(thread->priority < 0) thread->priority = 0;
+
+    if(thread->priority > 63) thread->priority = 63;
+  }
+}
+
+
+
+>>>>>>> 7a27322f3f3ee040514bdf53a0961bb74ab5d61d
 bool thread_compare_two(struct thread *t, struct thread *s){
 
 	ASSERT (is_thread (t));
@@ -527,7 +555,15 @@ bool thread_compare_two(struct thread *t, struct thread *s){
 	}
 }
 
-
+bool check_priority_current_running(void)
+{
+    struct thread *currentThread = thread_current();
+    struct list_elem *frontOfList = list_begin(&list_sleeping);
+    struct list_elem *currentListElem = frontOfList;
+    struct thread *currentThreadCmp = list_entry(currentListElem,
+                                                    struct thread, elem);
+    return(thread_compare_two(currentThreadCmp, currentThread));
+}
 /* Sets the current thread's nice value to NICE. */
 void
 thread_set_nice (int nice)
