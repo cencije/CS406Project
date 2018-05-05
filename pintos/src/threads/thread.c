@@ -249,24 +249,11 @@ thread_create (const char *name, int priority,
   /* Add to run queue. */
   thread_unblock (t);
 
-  // compare new thread to running thread. If priority >, yield current thread,
-  // and schedule new one (sort and pop from top, whcih should be this thread).
-  /*
-  if (thread_compare_to_running(&t) == true){
-  	thread_switch();
-  }
-  */
 
 // The following needs to be rechecked and is used for Pri Scheduler
-  /*if(thread_mlfqs)
-  {
-    calculate_thread_priority(t);
-  }
-  if(check_priority_current_running())
-  {
-    thread_yield();
-  }
-*/
+  //if(thread_mlfqs) calculate_thread_priority(t);//JC//
+  //if(check_priority_current_running()) thread_yield(); //JC//
+
   return tid;
 }
 
@@ -306,12 +293,9 @@ thread_unblock (struct thread *t)
 
   /* EDIT EDIT EDIT EDIT EDIT */
   list_push_back (&ready_list, &t->elem);
-  //list_insert_ordered(&ready_list, &t->elem, &thread_compare_two, NULL);
+  //list_insert_ordered(&ready_list, &t->elem, &thread_compare_two, NULL); //JC//
 
   t->status = THREAD_READY;
-
-  // call compare here
-  //thread_compare_priority(t);
   intr_set_level (old_level);
 }
 
@@ -382,7 +366,7 @@ thread_yield (void)
   ASSERT (!intr_context ());
 
   old_level = intr_disable ();
-  if (cur != idle_thread) list_insert_ordered(&ready_list, &cur->elem, &thread_compare_two, NULL);
+  if (cur != idle_thread) list_insert_ordered(&ready_list, &cur->elem, &thread_compare_two, NULL); //JC//
     //list_push_back (&ready_list, &cur->elem);
   cur->status = THREAD_READY;
   schedule ();
@@ -390,10 +374,8 @@ thread_yield (void)
 }
 
 void
-thread_sleep_setter (int64_t totalTicks)
+thread_sleep_setter (int64_t totalTicks) //JC//
 {
-
-  //printf("Called Sleep Setter\n");
 
   struct thread *cur = thread_current ();
   enum intr_level old_level;
@@ -401,7 +383,7 @@ thread_sleep_setter (int64_t totalTicks)
   ASSERT (!intr_context ());
 
   old_level = intr_disable ();
-  //cur->status = THREAD_BLOCKED;
+
   cur->exit_time = totalTicks;
   if (cur != idle_thread)
   {
@@ -410,40 +392,23 @@ thread_sleep_setter (int64_t totalTicks)
     struct list_elem *currentListElem = frontOfList;
 
     bool inserted = false;
-    /*if(list_empty(&list_sleeping))
-    {
-      list_push_front(&list_sleeping,&cur->elem);
-    }
-    else
-    {*/
-      //int counter = 0;
       while(currentListElem != NULL)
       {
-        //printf("\nINSIDE WHILE!\n");
         struct thread *currentThreadCmp = list_entry(currentListElem,
                                                     struct thread, elem);
         if (cur->exit_time <= currentThreadCmp->exit_time)
         {
-          //printf("\nFound Spot to place in List!\n");
-          //printf("%d%s", counter, "\n");
-          //list_push_front(&list_sleeping,&cur->elem);
           list_insert(&currentThreadCmp->elem, &cur->elem);
-          //printf("%s%d\n", "Size of the sleeping list: ", list_size(&list_sleeping));
           cur->status = THREAD_BLOCKED;
           inserted = true;
           break;
         }
         currentListElem = currentListElem->next;
-        //counter++;
       }
       if (!inserted){
-        //printf("\nInserted was false and put at the end\n");
         list_push_back(&list_sleeping, &cur->elem);
-        //printf("%s%d\n", "Size of the sleeping list: ", list_size(&list_sleeping));
         cur->status = THREAD_BLOCKED;
       }
-    //}
-
   }
 
   schedule ();
@@ -471,32 +436,19 @@ thread_foreach (thread_action_func *func, void *aux)
 void
 thread_set_priority (int new_priority)
 {
-	thread_current ()->priority = new_priority;
-
-  // e is the current thread
-	struct thread *e = thread_current();
-
-  // t is the  thread at the beginning of the list
-	struct list_elem *frontOfList = list_begin(&ready_list);
-	struct list_elem *currentListElem = frontOfList;
-
-	bool inserted = false;
-	while (currentListElem->next != NULL){
-
-		struct thread *currentThreadCmp = list_entry(currentListElem, struct thread, elem);
-		if (currentThreadCmp->priority < e->priority){
-			thread_yield();
-
-			list_insert(&currentThreadCmp->elem, &e->elem);
-			inserted = true;
-
-			break;
-		}
-		currentListElem = currentListElem->next;
-	}
-	if (!inserted){
-		list_push_back(&ready_list, &e->elem);
-	}
+  //JC//
+  struct thread *e = thread_current();
+  if (e->donating) {
+    e->original_priority = new_priority;
+  }
+  else {
+    e->original_priority = new_priority;
+    e->priority = new_priority;
+  }
+  if (check_priority_current_running()) {
+    thread_yield();
+  }
+  //JC//
 }
 
 /* Returns the current thread's priority.
@@ -509,7 +461,7 @@ thread_get_priority (void)
   return thread_current ()->priority;
 }
 
-bool thread_compare_to_running(struct thread *t){
+bool thread_compare_to_running(struct thread *t){ //LM//
   ASSERT (is_thread (t));
   struct thread *cur = running_thread ();
 
@@ -523,7 +475,7 @@ bool thread_compare_to_running(struct thread *t){
 }
 
 
-void calculate_thread_priority(struct thread* thread)
+void calculate_thread_priority(struct thread* thread) //GS//
 {
   ASSERT(is_thread(thread));
 
@@ -537,11 +489,7 @@ void calculate_thread_priority(struct thread* thread)
   }
 }
 
-bool thread_compare_two(struct thread *t, struct thread *s){
-
-	ASSERT (is_thread (t));
-	ASSERT (is_thread (s));
-
+bool thread_compare_two(struct thread *t, struct thread *s) { //LM//
 	if (t->priority > s->priority)
 	{
 		return true;
@@ -551,7 +499,7 @@ bool thread_compare_two(struct thread *t, struct thread *s){
 	}
 }
 
-bool check_priority_current_running(void)
+bool check_priority_current_running(void) //GS//
 {
     struct thread *currentThread = thread_current();
     struct list_elem *frontOfList = list_begin(&list_sleeping);
@@ -564,6 +512,7 @@ bool check_priority_current_running(void)
 void
 thread_set_nice (int nice)
 {
+  //JC//
   struct thread *t = thread_current();
   ASSERT(nice >= -20 && nice <= 20)
   t->nice = nice;
@@ -574,7 +523,7 @@ int
 thread_get_nice (void)
 {
   /* Not yet implemented. */
-  return thread_current()->nice;
+  return thread_current()->nice; //JC//
 }
 
 /* Returns 100 times the system load average. */
@@ -583,7 +532,7 @@ thread_get_load_avg (void)
 {
   /* Not yet implemented. */
   return (((59/60) * load_avg) +
-          ((1/60) + list_size(&ready_list)));
+          ((1/60) + list_size(&ready_list))); //JC//
 }
 
 /* Returns 100 times the current thread's recent_cpu value. */
@@ -592,7 +541,7 @@ thread_get_recent_cpu (void)
 {
 
   return ((((2 * thread_get_load_avg())/(2* thread_get_load_avg()))
-              * thread_get_recent_cpu()) + thread_get_nice());
+              * thread_get_recent_cpu()) + thread_get_nice()); //JC//
 }
 
 /* Idle thread.  Executes when no other thread is ready to run.

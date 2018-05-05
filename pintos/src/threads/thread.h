@@ -99,15 +99,15 @@ struct thread
     bool donating;
     struct list waiting_list;
 
+    /* Added these values for calculation */
+        int nice;
+        int recent_cpu;
+
 
 #ifdef USERPROG
     /* Owned by userprog/process.c. */
     uint32_t *pagedir;                  /* Page directory. */
 #endif
-
-/* Added these values for calculation */
-    int nice;
-    int recent_cpu;
 
     /* Owned by thread.c. */
     unsigned magic;                     /* Detects stack overflow. */
