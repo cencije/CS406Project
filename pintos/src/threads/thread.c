@@ -100,6 +100,7 @@ thread_init (void)
   list_init (&ready_list);
   list_init (&all_list);
 
+
   /* Set up a thread structure for the running thread. */
   initial_thread = running_thread ();
   init_thread (initial_thread, "main", PRI_DEFAULT);
@@ -211,6 +212,10 @@ thread_create (const char *name, int priority,
   tid_t tid;
   enum intr_level old_level;
 
+  // set the original priority = the priority and thread as not donating
+  t->original_priority = priority;
+  t->donating = false;
+  list_init(&(t->waiting_list));
 
   ASSERT (function != NULL);
 
