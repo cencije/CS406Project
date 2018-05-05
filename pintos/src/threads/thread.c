@@ -257,15 +257,16 @@ thread_create (const char *name, int priority,
   }
   */
 
-  if(thread_mlfqs)
+// The following needs to be rechecked and is used for Pri Scheduler 
+  /*if(thread_mlfqs)
   {
-    //calculate thread_priority
+    calculate_thread_priority(t);
   }
   if(check_priority_current_running())
   {
     thread_yield();
   }
-
+*/
   return tid;
 }
 
@@ -488,7 +489,7 @@ thread_set_priority (int new_priority)
 
 			list_insert(&currentThreadCmp->elem, &e->elem);
 			inserted = true;
-  			
+
 			break;
 		}
 		currentListElem = currentListElem->next;
@@ -498,7 +499,7 @@ thread_set_priority (int new_priority)
 	}
 }
 
-/* Returns the current thread's priority. 
+/* Returns the current thread's priority.
    Dont think we have to change this, seems to work
 */
 int
@@ -521,9 +522,7 @@ bool thread_compare_to_running(struct thread *t){
   return false;
 }
 
-<<<<<<< HEAD
-// double check this, true if x, false if y
-=======
+
 void calculate_thread_priority(struct thread* thread)
 {
   ASSERT(is_thread(thread));
@@ -538,9 +537,6 @@ void calculate_thread_priority(struct thread* thread)
   }
 }
 
-
-
->>>>>>> 7a27322f3f3ee040514bdf53a0961bb74ab5d61d
 bool thread_compare_two(struct thread *t, struct thread *s){
 
 	ASSERT (is_thread (t));
