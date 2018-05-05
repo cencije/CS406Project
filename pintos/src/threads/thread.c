@@ -257,7 +257,7 @@ thread_create (const char *name, int priority,
   }
   */
 
-// The following needs to be rechecked and is used for Pri Scheduler 
+// The following needs to be rechecked and is used for Pri Scheduler
   /*if(thread_mlfqs)
   {
     calculate_thread_priority(t);
@@ -382,8 +382,8 @@ thread_yield (void)
   ASSERT (!intr_context ());
 
   old_level = intr_disable ();
-  if (cur != idle_thread)
-    list_push_back (&ready_list, &cur->elem);
+  if (cur != idle_thread) list_insert_ordered(&ready_list, &cur->elem, &thread_compare_two, NULL);
+    //list_push_back (&ready_list, &cur->elem);
   cur->status = THREAD_READY;
   schedule ();
   intr_set_level (old_level);
