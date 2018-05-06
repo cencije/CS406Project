@@ -1,17 +1,22 @@
-qemu-system-i386 -hda /tmp/ZZbq1lqJee.dsk -m 4 -net none -nographic -monitor null
+qemu-system-i386 -hda /tmp/972zBwp3ab.dsk -m 4 -net none -serial stdio
 PiLo hda1
 Loading...........
-Kernel command line: run donate-one
+Kernel command line: run priority-donate-one
 Pintos booting with 3,968 kB RAM...
 367 pages available in kernel pool.
 367 pages available in user pool.
 Timer Initialized
-(null)
-Calibrating timer...  471,040,000 loops/s.
+Calibrating timer...  104,755,200 loops/s.
 Boot complete.
-Executing 'donate-one':
-Kernel PANIC at ../../tests/threads/tests.c:60 in run_test(): no test named "donate-one"
-Call stack: 0xc0027832.
-The `backtrace' program can make call stacks useful.
-Read "Backtraces" in the "Debugging Tools" chapter
-of the Pintos documentation for more information.
+Executing 'priority-donate-one':
+(priority-donate-one) begin
+(priority-donate-one) This thread should have priority 32.  Actual priority: 31.
+(priority-donate-one) This thread should have priority 33.  Actual priority: 31.
+(priority-donate-one) acquire2, acquire1 must already have finished, in that order.
+(priority-donate-one) This should be the last line before finishing this test.
+(priority-donate-one) end
+Execution of 'priority-donate-one' complete.
+(priority-donate-one) acquire1: got the lock
+(priority-donate-one) acquire1: done
+(priority-donate-one) acquire2: got the lock
+(priority-donate-one) acquire2: done

@@ -48,6 +48,7 @@ sema_init (struct semaphore *sema, unsigned value)
 
   sema->value = value;
   list_init (&sema->waiters);
+  sema->owner_lock=NULL;
 }
 
 /* Down or "P" operation on a semaphore.  Waits for SEMA's value
@@ -58,7 +59,7 @@ sema_init (struct semaphore *sema, unsigned value)
    interrupts disabled, but if it sleeps then the next scheduled
    thread will probably turn interrupts back on. */
 void
-sema_down (struct semaphore *sema)
+sema_down (struct semaphore *sema) // EDIT EDIT EDIT EDIT //
 {
   enum intr_level old_level;
 
@@ -66,13 +67,13 @@ sema_down (struct semaphore *sema)
   ASSERT (!intr_context ());
 
   old_level = intr_disable ();
-  while (sema->value == 0)
+    while (sema->value == 0)
     {
-      // as in thread.c, we have to add things in oder rather than push to the back
-      //list_push_back (&sema->waiters, &thread_current ()->elem);
-      list_insert_ordered(&sema->waiters, &(thread_current ())->elem,&thread_compare_two,NULL);
+    // as in thread.c, we have to add things in oder rather than push to the back
+    //list_push_back (&sema->waiters, &thread_current ()->elem);
+    list_insert_ordered(&sema->waiters, &(thread_current ())->elem,&thread_compare_two,NULL);
 
-      thread_block ();
+    thread_block ();
     }
   sema->value--;
   intr_set_level (old_level);
@@ -109,22 +110,18 @@ sema_try_down (struct semaphore *sema)
 
    This function may be called from an interrupt handler. */
 void
-sema_up (struct semaphore *sema)
+sema_up (struct semaphore *sema) // EDIT EDIT EDIT EDIT //
 {
   enum intr_level old_level;
 
   ASSERT (sema != NULL);
 
   old_level = intr_disable ();
-
   if (!list_empty (&sema->waiters))
-    thread_unblock (list_entry (list_pop_front (&sema->waiters),
-                                struct thread, elem));
+  thread_unblock (list_entry (list_pop_front (&sema->waiters),
+  struct thread, elem));
   sema->value++;
   intr_set_level (old_level);
-
-  // This line causes alarm to fail
-  //if (check_priority_current_running()) thread_yield(); //JC// // Added to check for preeemption
 }
 
 static void sema_test_helper (void *sema_);
@@ -185,10 +182,11 @@ lock_init (struct lock *lock)
   ASSERT (lock != NULL);
 
   lock->holder = NULL;
+  //printf("Initialized the Lock\n");
   sema_init (&lock->semaphore, 1);
 
-  // LM setting lock for the semaphore 
-  (lock->semaphore).owner_lock=lock;
+  //LM// setting lock for the semaphore
+  (lock->semaphore).owner_lock = lock;
 }
 
 /* Acquires LOCK, sleeping until it becomes available if
@@ -206,8 +204,12 @@ lock_acquire (struct lock *lock)
   ASSERT (!intr_context ());
   ASSERT (!lock_held_by_current_thread (lock));
 
+
   sema_down (&lock->semaphore);
   lock->holder = thread_current ();
+  //fprintf( stderr,"Pushing to front of list: Locks!\n");
+  list_push_front(&(thread_current()->list_locks_held),&(lock->this_lock));
+  //printf("Acquired the Lock\n");
 }
 
 /* Tries to acquires LOCK and returns true if successful or false
@@ -305,9 +307,9 @@ cond_wait (struct condition *cond, struct lock *lock)
   ASSERT (lock_held_by_current_thread (lock));
 
   sema_init (&waiter.semaphore, 0);
-  // as in thread.c, we have to add things in oder rather than push to the back
-  //list_push_back (&sema->waiters, &thread_current ()->elem);
-  list_insert_ordered(&cond->waiters, &(thread_current ())->elem,&thread_compare_two,NULL);
+  // as in thread.c, we have to add things in order rather than push to the back
+  //list_push_back (&cond->waiters, &thread_current ()->elem);
+  //list_insert_ordered(&cond->waiters, &waiter.elem,&thread_compare_two,NULL); //LM//
   lock_release (lock);
   sema_down (&waiter.semaphore);
   lock_acquire (lock);

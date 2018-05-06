@@ -88,21 +88,26 @@ struct thread
     char name[16];                      /* Name (for debugging purposes). */
     uint8_t *stack;                     /* Saved stack pointer. */
     int priority;                       /* Priority. */
-    int original_priority;              // the original priority of the thread
     struct list_elem allelem;           /* List element for all threads list. */
-/* Added Exit_time for tick amount when sleeping */
-    int64_t exit_time;
+
 
     /* Shared between thread.c and synch.c. */
     struct list_elem elem;              /* List element. */
 
-    bool donating;
-    struct list waiting_list;
 
+
+    /* Added Exit_time for tick amount when sleeping */
+        int64_t exit_time;
     /* Added these values for calculation */
-        int nice;
-        int recent_cpu;
+        int nice; //JC//
+        int recent_cpu; //JC//
+        int original_priority;              // the original priority of the thread
 
+        bool donating;
+        struct list waiting_list;
+
+        struct lock* lock_blocked;
+        struct list list_locks_held;
 
 #ifdef USERPROG
     /* Owned by userprog/process.c. */

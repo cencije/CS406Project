@@ -106,6 +106,7 @@ thread_init (void)
   init_thread (initial_thread, "main", PRI_DEFAULT);
   initial_thread->status = THREAD_RUNNING;
   initial_thread->tid = allocate_tid ();
+  load_avg = 0;
 }
 
 void check_sleeping_threads (void) {
@@ -115,7 +116,7 @@ void check_sleeping_threads (void) {
   {
     if (list_empty(&list_sleeping))
     {
-      //printf("\nReturned Empty\n");
+      //fprintf( stderr,"\nReturned Empty\n");
       return;
     }
     struct list_elem *frontOfList = list_begin(&list_sleeping);
@@ -124,7 +125,7 @@ void check_sleeping_threads (void) {
     if(heldThread->exit_time > currentTicks) {
       return;
     }
-    //printf("\nPOPPING\n");
+    //fprintf( stderr,"\nPOPPING\n");
     list_pop_front(&list_sleeping);
     thread_unblock(heldThread);
   }
@@ -153,7 +154,7 @@ void
 thread_tick (void)
 {
   counts++;
-  //printf("%s%d", "Thread Tick # ", counts);
+  //fprintf( stderr,"%s%d", "Thread Tick # ", counts);
 
   struct thread *t = thread_current ();
 
@@ -212,11 +213,6 @@ thread_create (const char *name, int priority,
   tid_t tid;
   enum intr_level old_level;
 
-  // set the original priority = the priority and thread as not donating
-  t->original_priority = priority;
-  t->donating = false;
-  list_init(&(t->waiting_list));
-
   ASSERT (function != NULL);
 
   /* Allocate thread. */
@@ -226,9 +222,10 @@ thread_create (const char *name, int priority,
     return TID_ERROR;
 
   /* Initialize thread. */
+  //printf("Priority is: %d \n", priority);
   init_thread (t, name, priority);
   tid = t->tid = allocate_tid ();
-  t->exit_time = 0;
+
   /* Prepare thread for first run by initializing its stack.
      Do this atomically so intermediate values for the 'stack'
      member cannot be observed. */
@@ -256,8 +253,8 @@ thread_create (const char *name, int priority,
 
 
 // The following needs to be rechecked and is used for Pri Scheduler
-  //if(thread_mlfqs) calculate_thread_priority(t);//JC//
-  //if(check_priority_current_running()) thread_yield(); //JC//
+  if(thread_mlfqs) calculate_thread_priority(t);//JC//
+  if(check_priority_current_running()) thread_yield(); //JC//
 
   return tid;
 }
@@ -296,9 +293,8 @@ thread_unblock (struct thread *t)
   old_level = intr_disable ();
   ASSERT (t->status == THREAD_BLOCKED);
 
-  /* EDIT EDIT EDIT EDIT EDIT */
-  list_push_back (&ready_list, &t->elem);
-  //list_insert_ordered(&ready_list, &t->elem, &thread_compare_two, NULL); //JC//
+  //list_push_back (&ready_list, &t->elem);
+  list_insert_ordered(&ready_list, &t->elem, &thread_compare_two, NULL); //JC//
 
   t->status = THREAD_READY;
   intr_set_level (old_level);
@@ -371,8 +367,11 @@ thread_yield (void)
   ASSERT (!intr_context ());
 
   old_level = intr_disable ();
-  if (cur != idle_thread) list_insert_ordered(&ready_list, &cur->elem, &thread_compare_two, NULL); //JC//
+  if (cur != idle_thread) {
+    list_insert_ordered(&ready_list, &cur->elem,  &thread_compare_two, NULL); //JC//
     //list_push_back (&ready_list, &cur->elem);
+  }
+
   cur->status = THREAD_READY;
   schedule ();
   intr_set_level (old_level);
@@ -419,6 +418,7 @@ thread_sleep_setter (int64_t totalTicks) //JC//
   schedule ();
   intr_set_level (old_level);
 }
+
 /* Invoke function 'func' on all threads, passing along 'aux'.
    This function must be called with interrupts off. */
 void
@@ -436,22 +436,54 @@ thread_foreach (thread_action_func *func, void *aux)
     }
 }
 
+bool thread_compare_two(struct thread *t, struct thread *s) { //LM//
+  //fprintf( stderr,"Checking the Priority!!!\n");
+  //fprintf( stderr,"T1 %d | T2 %d\n", t->priority, s->priority);
+  if (t->priority > s->priority)
+  {
+    //fprintf( stderr,"%s\n", "ITS TRUE!");
+    return true;
+  }
+  else {
+    //fprintf( stderr,"%s\n", "ITS FALSE!!");
+    return false;
+  }
+}
+
+bool check_priority_current_running(void) //GS//
+{
+    struct thread *currentThread = thread_current();
+    struct list_elem *frontOfList = list_begin(&list_sleeping);
+    struct list_elem *currentListElem = frontOfList;
+    struct thread *currentThreadCmp = list_entry(currentListElem,
+                                                    struct thread, elem);
+    //fprintf( stderr,"%s\n", "LETS COMPARE!");
+    return(thread_compare_two(currentThreadCmp, currentThread));
+}
+
 /* Sets the current thread's priority to NEW_PRIORITY. */
 // Sets the current thread's priority to new_priority. If the current thread no longer has the highest priority, yields
 void
 thread_set_priority (int new_priority)
 {
-  //JC//
-  struct thread *e = thread_current();
-  if (e->donating) {
-    e->original_priority = new_priority;
-  }
-  else {
-    e->original_priority = new_priority;
-    e->priority = new_priority;
-  }
-  if (check_priority_current_running()) {
-    thread_yield();
+  //fprintf( stderr,"New priority: %d\n", new_priority);
+  if (new_priority <= 63 && new_priority >= 0) {
+    //JC//
+    struct thread *t = thread_current();
+    if (t->donating) {
+      //fprintf( stderr,"%s\n", "DONATING!");
+      t->original_priority = new_priority;
+    }
+    else {
+      //fprintf( stderr,"%s\n", "NOT DONATING!");
+      t->priority = new_priority;
+      t->original_priority = new_priority;
+
+    }
+    if (check_priority_current_running()) {
+      //fprintf( stderr,"%s\n", "YIELDING!");
+      thread_yield();
+    }
   }
   //JC//
 }
@@ -463,14 +495,15 @@ int
 thread_get_priority (void)
 {
   // has to return higher/donated priority
+  //printf("%s%d\n", "Returning Pri : ", thread_current()->priority);
   return thread_current ()->priority;
 }
 
-bool thread_compare_to_running(struct thread *t){ //LM//
+bool thread_compare_to_running(struct thread *t) { //LM//
   ASSERT (is_thread (t));
   struct thread *cur = running_thread ();
 
-  if (t->priority > running_thread()->priority){
+  if (t->priority > running_thread()->priority) {
     switch_threads(t, cur);
     //thread_yield();
     // schedule new priority
@@ -487,32 +520,11 @@ void calculate_thread_priority(struct thread* thread) //GS//
   if(thread != idle_thread)
   {
     thread->priority = 63 - ((thread->recent_cpu / 4) - 2*thread->nice);
-
     if(thread->priority < 0) thread->priority = 0;
-
     if(thread->priority > 63) thread->priority = 63;
   }
 }
 
-bool thread_compare_two(struct thread *t, struct thread *s) { //LM//
-	if (t->priority > s->priority)
-	{
-		return true;
-	}
-	else {
-		return false;
-	}
-}
-
-bool check_priority_current_running(void) //GS//
-{
-    struct thread *currentThread = thread_current();
-    struct list_elem *frontOfList = list_begin(&list_sleeping);
-    struct list_elem *currentListElem = frontOfList;
-    struct thread *currentThreadCmp = list_entry(currentListElem,
-                                                    struct thread, elem);
-    return(thread_compare_two(currentThreadCmp, currentThread));
-}
 /* Sets the current thread's nice value to NICE. */
 void
 thread_set_nice (int nice)
@@ -628,6 +640,7 @@ init_thread (struct thread *t, const char *name, int priority)
   ASSERT (PRI_MIN <= priority && priority <= PRI_MAX);
   ASSERT (name != NULL);
 
+  //printf("Priority is: %d \n", priority);
   memset (t, 0, sizeof *t);
   t->status = THREAD_BLOCKED;
   strlcpy (t->name, name, sizeof t->name);
@@ -635,6 +648,15 @@ init_thread (struct thread *t, const char *name, int priority)
   t->priority = priority;
   t->magic = THREAD_MAGIC;
   list_push_back (&all_list, &t->allelem);
+
+  t->exit_time = 0;
+
+  // set the original priority = the priority and thread as not donating
+  t->original_priority = priority;
+  t->donating = false;
+  t->lock_blocked=NULL;
+  list_init(&(t->list_locks_held));
+  list_init(&(t->waiting_list));
 }
 
 /* Allocates a SIZE-byte frame at the top of thread T's stack and
@@ -661,8 +683,8 @@ next_thread_to_run (void)
   if (list_empty (&ready_list))
     return idle_thread;
   else
-  	// sort list here before selecting the thread from the front
-  	// needs input for comapre function? list_sort(&ready_list, thread_compare_two());
+    // sort list here before selecting the thread from the front
+    // needs input for comapre function? list_sort(&ready_list, thread_compare_two());
     return list_entry (list_pop_front (&ready_list), struct thread, elem);
 }
 
