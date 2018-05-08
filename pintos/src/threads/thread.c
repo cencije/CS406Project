@@ -697,6 +697,7 @@ next_thread_to_run (void)
        struct list_elem *e = list_pop_front (&orderedList);
      }
     //return returnedThread;
+    //list_sort(&ready_list, &thread_compare_two, NULL);
     return list_entry (list_pop_front (&ready_list), struct thread, elem);
   }
 }

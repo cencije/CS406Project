@@ -59,7 +59,7 @@ sema_init (struct semaphore *sema, unsigned value)
    interrupts disabled, but if it sleeps then the next scheduled
    thread will probably turn interrupts back on. */
 void
-sema_down (struct semaphore *sema) // EDIT EDIT EDIT EDIT //
+sema_down (struct semaphore *sema)
 {
   enum intr_level old_level;
 
@@ -110,7 +110,7 @@ sema_try_down (struct semaphore *sema)
 
    This function may be called from an interrupt handler. */
 void
-sema_up (struct semaphore *sema) // EDIT EDIT EDIT EDIT //
+sema_up (struct semaphore *sema)
 {
   enum intr_level old_level;
 
