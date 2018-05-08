@@ -23,6 +23,7 @@
 /* List of processes in THREAD_READY state, that is, processes
    that are ready to run but not actually running. */
 static struct list ready_list;
+static struct list orderedList;
 
 /* List of all processes.  Processes are added to this list
    when they are first scheduled and removed when they exit. */
@@ -94,11 +95,13 @@ void
 thread_init (void)
 {
   list_init(&list_sleeping);
+  list_init(&orderedList);
   ASSERT (intr_get_level () == INTR_OFF);
 
   lock_init (&tid_lock);
   list_init (&ready_list);
   list_init (&all_list);
+
 
 
   /* Set up a thread structure for the running thread. */
@@ -437,15 +440,11 @@ thread_foreach (thread_action_func *func, void *aux)
 }
 
 bool thread_compare_two(struct thread *t, struct thread *s) { //LM//
-  //fprintf( stderr,"Checking the Priority!!!\n");
-  //fprintf( stderr,"T1 %d | T2 %d\n", t->priority, s->priority);
   if (t->priority > s->priority)
   {
-    //fprintf( stderr,"%s\n", "ITS TRUE!");
     return true;
   }
   else {
-    //fprintf( stderr,"%s\n", "ITS FALSE!!");
     return false;
   }
 }
@@ -682,10 +681,24 @@ next_thread_to_run (void)
 {
   if (list_empty (&ready_list))
     return idle_thread;
-  else
+  else {
     // sort list here before selecting the thread from the front
-    // needs input for comapre function? list_sort(&ready_list, thread_compare_two());
+    // needs input for comapre function?
+    for (int i = 0; i < list_size(&ready_list); i++) {
+
+      struct list_elem *frontOfList = list_begin(&ready_list);
+      struct list_elem *currentListElem = frontOfList;
+      struct thread *currentThread = list_entry(currentListElem, struct thread, elem);
+      //list_insert_ordered(&orderedList, &currentThread->elem, &thread_compare_two, NULL);
+    }
+    //struct thread *returnedThread= list_entry (list_pop_front (&orderedList), struct thread, elem);
+    while (!list_empty (&orderedList))
+     {
+       struct list_elem *e = list_pop_front (&orderedList);
+     }
+    //return returnedThread;
     return list_entry (list_pop_front (&ready_list), struct thread, elem);
+  }
 }
 
 /* Completes a thread switch by activating the new thread's page
